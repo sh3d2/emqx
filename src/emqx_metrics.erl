@@ -180,6 +180,15 @@
          {counter, 'session.terminated'}
         ]).
 
+%% Alarms metrics
+-define(ALARM_METRICS,
+    [{gauge, 'alarm.memory_high'},
+     {gauge, 'alarm.cpu_high'},
+     {gauge, 'alarm.partition'},
+     {gauge, 'alarm.too_many_processes'},
+     {gauge, 'alarm.high_process_memory'}
+    ]).
+
 -record(state, {next_idx = 1}).
 
 -record(metric, {name, type, idx}).
@@ -545,6 +554,12 @@ reserved_idx('session.resumed')              -> 221;
 reserved_idx('session.takeovered')           -> 222;
 reserved_idx('session.discarded')            -> 223;
 reserved_idx('session.terminated')           -> 224;
+
+reserved_idx('alarm.memory_high')           -> 300;
+reserved_idx('alarm.cpu_high')              -> 301;
+reserved_idx('alarm.partition')             -> 304;
+reserved_idx('alarm.too_many_processes')    -> 305;
+reserved_idx('alarm.high_process_memory')   -> 305;
 
 reserved_idx(_)                              -> undefined.
 
