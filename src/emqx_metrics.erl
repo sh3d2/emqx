@@ -556,11 +556,11 @@ reserved_idx('session.takeovered')           -> 222;
 reserved_idx('session.discarded')            -> 223;
 reserved_idx('session.terminated')           -> 224;
 
-reserved_idx('alarm.memory_high')           -> 300;
-reserved_idx('alarm.cpu_high')              -> 301;
-reserved_idx('alarm.partition')             -> 302;
-reserved_idx('alarm.too_many_processes')    -> 303;
-reserved_idx('alarm.high_process_memory')   -> 304;
+reserved_idx('alarm.memory_high')            -> 300;
+reserved_idx('alarm.cpu_high')               -> 301;
+reserved_idx('alarm.partition')              -> 302;
+reserved_idx('alarm.too_many_processes')     -> 303;
+reserved_idx('alarm.high_process_memory')    -> 304;
 
 reserved_idx(_)                              -> undefined.
 

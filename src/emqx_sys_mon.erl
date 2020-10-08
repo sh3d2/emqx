@@ -165,8 +165,10 @@ code_change(_OldVsn, State, _Extra) ->
 %%--------------------------------------------------------------------
 
 handle_partition_event({partition, {occurred, Node}}) ->
+    emqx_metrics:set('alarm.partition', 1),
     emqx_alarm:activate(partition, #{occurred => Node});
 handle_partition_event({partition, {healed, _Node}}) ->
+    emqx_metrics:set('alarm.partition', 0),
     emqx_alarm:deactivate(partition).
 
 suppress(Key, SuccFun, State = #{events := Events}) ->

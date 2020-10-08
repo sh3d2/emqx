@@ -149,9 +149,11 @@ handle_info({timeout, Timer, check}, State = #{timer := Timer,
             emqx_alarm:activate(high_cpu_usage, #{usage => Busy,
                                                   high_watermark => CPUHighWatermark,
                                                   low_watermark => CPULowWatermark}),
+            emqx_metrics:set('alarm.cpu_high', 1),
             ensure_check_timer(State);
         Busy when Busy / 100 =< CPULowWatermark ->
             emqx_alarm:deactivate(high_cpu_usage),
+            emqx_metrics:set('alarm.cpu_high', 0),
             ensure_check_timer(State);
         _Busy ->
             ensure_check_timer(State)

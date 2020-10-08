@@ -115,9 +115,11 @@ handle_info({timeout, Timer, check},
         Percent when Percent >= ProcHighWatermark ->
             emqx_alarm:activate(too_many_processes, #{usage => Percent,
                                                       high_watermark => ProcHighWatermark,
-                                                      low_watermark => ProcLowWatermark});
+                                                      low_watermark => ProcLowWatermark}),
+            emqx_metrics:set('alarm.too_many_processes', 1);
         Percent when Percent < ProcLowWatermark ->
-            emqx_alarm:deactivate(too_many_processes);
+            emqx_alarm:deactivate(too_many_processes),
+            emqx_metrics:set('alarm.too_many_processes', 0);
         _Precent ->
             ok
     end,
