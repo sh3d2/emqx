@@ -421,7 +421,8 @@ init([]) ->
                             ?MESSAGE_METRICS,
                             ?DELIVERY_METRICS,
                             ?CLIENT_METRICS,
-                            ?SESSION_METRICS
+                            ?SESSION_METRICS,
+                            ?ALARM_METRICS
                            ]),
     % Store reserved indices
     ok = lists:foreach(fun({Type, Name}) ->
