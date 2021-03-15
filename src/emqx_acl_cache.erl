@@ -47,6 +47,7 @@
 %% Wrappers for key and value
 cache_k(PubSub, Topic)-> {PubSub, Topic}.
 cache_v(AclResult)-> {AclResult, time_now()}.
+discard_k() -> {?MODULE, discard_stamp}.
 
 -spec(is_enabled() -> boolean()).
 is_enabled() ->
@@ -67,17 +68,22 @@ list_acl_cache() ->
 
 %% We'll cleanup the cache before replacing an expired acl.
 -spec(get_acl_cache(emqx_types:pubsub(), emqx_topic:topic()) -> (acl_result() | not_found)).
-get_acl_cache(PubSub, Topic) ->
-    case erlang:get(cache_k(PubSub, Topic)) of
-        undefined -> not_found;
-        {AclResult, CachedAt} ->
-            if_expired(CachedAt,
-                fun(false) ->
-                      AclResult;
-                   (true) ->
-                      cleanup_acl_cache(),
-                      not_found
-                end)
+get_acl_cache(PubSub, Topic)  ->
+    case if_discarded() of
+        true -> empty_acl_cache(),
+            not_found;
+        false ->
+            case erlang:get(cache_k(PubSub, Topic)) of
+                undefined -> not_found;
+                {AclResult, CachedAt} ->
+                    if_expired(CachedAt,
+                        fun(false) ->
+                              AclResult;
+                           (true) ->
+                              cleanup_acl_cache(),
+                              not_found
+                        end)
+            end
     end.
 
 %% If the cache get full, and also the latest one
@@ -109,7 +115,8 @@ put_acl_cache(PubSub, Topic, AclResult) ->
 empty_acl_cache() ->
     foreach_acl_cache(fun({CacheK, _CacheV}) -> erlang:erase(CacheK) end),
     set_cache_size(0),
-    keys_queue_set(queue:new()).
+    keys_queue_set(queue:new()),
+    update_discarded_stamp().
 
 %% delete the oldest acl entry
 -spec(evict_acl_cache() -> ok).
@@ -121,6 +128,10 @@ evict_acl_cache() ->
 %% cleanup all the expired cache entries
 -spec(cleanup_acl_cache() -> ok).
 cleanup_acl_cache() ->
+    case if_discarded() of
+        true -> empty_acl_cache();
+        _ -> ok
+    end,
     keys_queue_set(
         cleanup_acl(keys_queue_get())).
 
@@ -244,3 +255,12 @@ if_expired(CachedAt, Fun) ->
        true ->
            Fun(false)
     end.
+
+if_discarded() ->
+    LastEvictionStamp = erlang:get(discard_k()),
+    CurrentEvictionStamp = persistent_term:get(discard_k(), 0),
+    LastEvictionStamp =/= CurrentEvictionStamp.
+
+update_discarded_stamp() ->
+    CurrentEvictionStamp = persistent_term:get(discard_k(), 0),
+    erlang:put(discard_k(), CurrentEvictionStamp).
